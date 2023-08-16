@@ -35,6 +35,6 @@ mobileweights_6classes.h5
 # ignore the ble zipped file
 PART-2/open-test2-nano-33-ble-sense-v3.zip
 
-# ignore the open-mv-model files
-PART-2/openmv-model/labels.txt
-PART-2/openmv-model/trained444.tflite
+# # ignore the open-mv-model files
+# PART-2/openmv-model/labels.txt
+# PART-2/openmv-model/trained444.tflite
