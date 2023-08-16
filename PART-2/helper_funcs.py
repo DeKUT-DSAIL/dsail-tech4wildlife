@@ -10,8 +10,12 @@ import warnings
 warnings.filterwarnings('ignore')
 import random
 import tensorflow as tf
+from sklearn.cluster import KMeans
+import os
+from pathlib import Path
 
 random.seed(42)
+transfer_weights = os.path.join(Path(os.getcwd()).parent, 'models', 'weights', 'MobileNetV1.0_2.96x96.color.bsize_96.lr_0_05.epoch_170.val_loss_3.61.val_accuracy_0.27.hdf5')
 
 def split_data(image_dir, label_df, value):
     '''
@@ -92,10 +96,63 @@ def extract_images_and_labels(image_tensors, normalize=True, categorical=True):
     if normalize:
         images = images / 255.0
     if categorical:
-        labels = tf.keras.utils.to_categorical(labels)
+        labels = tf.keras.utils.to_categorical(labels, num_classes=6)
     
     return images, labels
 
+# visualize batch of images
+def visualize_images(dataloader, batch_size=6):
+    # get the class names
+    class_names = list(dataloader.class_names)
+    # set a matplotlib figure
+    plt.figure(figsize=(10, 10))
+    # take the first batch of images
+    for images, labels in dataloader.take(1):
+        for i in range(batch_size):
+            ax = plt.subplot(3, batch_size//3, i + 1)
+            try:
+                plt.imshow(images[i].numpy().astype("uint8"))
+                plt.title(class_names[labels[i]])
+                plt.axis("off")
+            except:
+                break
+
+# get the data distribution
+def data_distribution(train_dir, val_dir, test_dir, plot=False):
+    train_length = dict()
+    val_length = dict()
+    test_length = dict()
+    
+    # populate the dictionaries
+    for folder in os.listdir(train_dir):
+        train_length[folder] = len(os.listdir(f'{train_dir}/{folder}'))
+    for folder in os.listdir(val_dir):
+        val_length[folder] = len(os.listdir(f'{val_dir}/{folder}'))
+    for folder in os.listdir(test_dir):
+        test_length[folder] = len(os.listdir(f'{test_dir}/{folder}'))
+    
+    if plot:
+        classes = list(train_length.keys())
+        train_counts = list(train_length.values())
+        test_counts = list(test_length.values())
+        val_counts = list(val_length.values())
+        
+        width = 0.2
+        x = range(len(classes))
+        
+        plt.bar(x, train_counts, width, label='Train')
+        plt.bar([i + width for i in x], test_counts, width, label='Test')
+        plt.bar([i + 2 * width for i in x], val_counts, width, label='Validation')
+        
+        plt.xlabel('Classes')
+        plt.ylabel('Counts')
+        plt.title('Data Distribution by Class')
+        plt.xticks([i + width for i in x], classes)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+    else:
+        return train_length, val_length, test_length
 
 def visualize_dimensionality_reduction(train_images, train_labels, labels, perplexity=5, n_components=2, random_state=42):
     '''
@@ -121,6 +178,9 @@ def visualize_dimensionality_reduction(train_images, train_labels, labels, perpl
     # Flatten the train_images array
     num_samples, height, width, num_channels = train_images.shape
     flattened_train_images = train_images.reshape(num_samples, height * width * num_channels)
+    
+    kmeans = KMeans(n_clusters=6, random_state=random_state)
+    train_labels = kmeans.fit_predict(flattened_train_images)
 
     # Perform PCA
     pca = PCA(n_components=n_components, random_state=random_state)
@@ -163,5 +223,43 @@ def visualize_dimensionality_reduction(train_images, train_labels, labels, perpl
 
     plt.tight_layout()
     plt.show()
+
+
+# Model Architecture leveraging pretrained weights
+def build_model(num_classes=6, dropout=0.1, activation='softmax', 
+                input_shape=(96,96,3), weights=transfer_weights, alpha=0.2, 
+                train_able=False, optimizer='adam', loss='categorical_crossentropy',
+                metrics=['accuracy'], learning_rate=0.005, weight_decay=0.0001,
+                momentum=0.9):
+    
+    base_model = tf.keras.applications.MobileNet(input_shape=input_shape,
+                                                 alpha=alpha,
+                                                 weights=weights)
+    base_model.trainable = train_able
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.InputLayer(input_shape=input_shape, name='x_input'))
+    # Don't include the base model's top layers
+    last_layer_index = -5
+    model.add(tf.keras.Model(inputs=base_model.inputs, outputs=base_model.layers[last_layer_index].output))
+    model.add(tf.keras.layers.GlobalAveragePooling2D())  # Global average pooling
+    model.add(tf.keras.layers.Dropout(dropout))
+    model.add(tf.keras.layers.Dense(num_classes, activation=activation))
+
+    # compiling the model and defining loss function
+    if optimizer == 'adam':
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate,
+                                                         weight_decay=weight_decay),
+                        loss=loss,
+                        metrics=metrics)
+    elif optimizer == 'sgd':
+        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate,
+                                                        momentum=momentum,
+                                                        weight_decay=weight_decay),
+                        loss=loss,
+                        metrics=metrics)
+    
+
+    return model
+
 
 
