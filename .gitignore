@@ -1,0 +1,40 @@
+# ignore the virtual environment
+.venv
+
+# edge test files
+edge/
+
+# files with the extension .tflite
+*.tflite
+
+# files with jpg extension
+*.jpg
+
+# ignore __pycache__ directories
+PART-2/__pycache__/
+
+# ignore the helper folders
+dsa2022-Arusha/
+tflite-micro/
+
+# ignore the config file 
+PART-2/config.json
+
+# ignore the data files
+PART-2/train/
+PART-2/test/
+PART-2/val/
+PART-2/dataset/
+
+# ignore the model file
+PART-2/mobileweights_6classes.h5
+PART-2/mobileweights_6classes.tflite
+mobileweights_6classes.h5
+
+
+# ignore the ble zipped file
+PART-2/open-test2-nano-33-ble-sense-v3.zip
+
+# ignore the open-mv-model files
+PART-2/openmv-model/labels.txt
+PART-2/openmv-model/trained444.tflite
