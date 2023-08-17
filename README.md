@@ -38,6 +38,7 @@ The OV7675 camera module is a small, low-cost camera sensor that can capture ima
 
 ### Tiny Machine Learning(TinyML Shield)
 The shield includes all the necessary circuitry to connect the camera module to the Arduino Nano, eliminating the need for manual wire connections. It also ensures the correct pinout, making it easier for us to set up and work with the hardware.
+
 ![image](https://github.com/DeKUT-DSAIL/dsail-tech4wildlife/assets/88529649/81b86ef2-b6ea-40f7-aa0c-8c128cf4b7bb)
 
 
