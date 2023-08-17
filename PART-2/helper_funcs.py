@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from matplotlib.gridspec import GridSpec 
 from PIL import Image
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 
 random.seed(42)
 transfer_weights = os.path.join(Path(os.getcwd()).parent, 'models', 'weights', 'MobileNetV1.0_2.96x96.color.bsize_96.lr_0_05.epoch_170.val_loss_3.61.val_accuracy_0.27.hdf5')
@@ -401,6 +401,33 @@ def plot_classification_report(model, test_tensors, labels=labels_dict):
 
     plt.show()
 
+# evaluate tflite model
+def evaluate_tflite(tflite_path, test_tensors, dtype='int8'):
+    # load the model
+    interpreter = tf.lite.Interpreter(tflite_path)
+    output_details = interpreter.get_output_details()
+
+    # prepare the test images and labels
+    test_images, test_labels = extract_images_and_labels(test_tensors, normalize=True, categorical=False)
+
+    # resize and allocate tensors
+    interpreter.resize_tensor_input(0, test_images.shape)
+    interpreter.allocate_tensors()
+    interpreter.set_tensor(0, np.array(test_images, dtype=dtype))
+    interpreter.invoke()
+
+    # make predictions
+    tflite_model_predictions = interpreter.get_tensor(output_details[0]['index'])
+
+    # get the classes
+    prediction_classes = np.argmax(tflite_model_predictions, axis=1)
+
+    # check accuracy
+    return accuracy_score(prediction_classes, test_labels)
 
 
 
+
+
+# an all inclusive run model
+# def run_model()
