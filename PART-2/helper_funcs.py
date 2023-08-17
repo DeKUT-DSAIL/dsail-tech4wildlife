@@ -1,21 +1,29 @@
 import os
 import shutil
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from umap import UMAP
+
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 import random
 import tensorflow as tf
-from sklearn.cluster import KMeans
 import os
 from pathlib import Path
+from matplotlib.gridspec import GridSpec 
+from PIL import Image
+from sklearn.metrics import classification_report
 
 random.seed(42)
 transfer_weights = os.path.join(Path(os.getcwd()).parent, 'models', 'weights', 'MobileNetV1.0_2.96x96.color.bsize_96.lr_0_05.epoch_170.val_loss_3.61.val_accuracy_0.27.hdf5')
+labels_dict = {
+                0: 'BUSHBUCK',
+                1: 'IMPALA',
+                2: 'MONKEY',
+                3: 'WARTHOG',
+                4: 'WATERBUCK',
+                5: 'ZEBRA'
+            }
 
 def split_data(image_dir, label_df, value):
     '''
@@ -109,7 +117,7 @@ def visualize_images(dataloader, batch_size=6):
     # take the first batch of images
     for images, labels in dataloader.take(1):
         for i in range(batch_size):
-            ax = plt.subplot(3, batch_size//3, i + 1)
+            ax = plt.subplot(batch_size//3, 3, i + 1)
             try:
                 plt.imshow(images[i].numpy().astype("uint8"))
                 plt.title(class_names[labels[i]])
@@ -155,6 +163,11 @@ def data_distribution(train_dir, val_dir, test_dir, plot=False):
         return train_length, val_length, test_length
 
 def visualize_dimensionality_reduction(train_images, train_labels, labels, perplexity=5, n_components=2, random_state=42):
+    from sklearn.decomposition import PCA
+    from sklearn.manifold import TSNE
+    from umap import UMAP
+    from sklearn.cluster import KMeans
+
     '''
     Visualize dimensionality reduction techniques (PCA, t-SNE, UMAP) for image data.
 
@@ -232,6 +245,30 @@ def build_model(num_classes=6, dropout=0.1, activation='softmax',
                 metrics=['accuracy'], learning_rate=0.005, weight_decay=0.0001,
                 momentum=0.9):
     
+    """
+    Build a custom classification model based on MobileNet architecture with pretrained weights.
+
+    Parameters:
+    -----------------
+    - num_classes (int): Number of output classes.
+    - dropout (float): Dropout rate to apply after the GlobalAveragePooling2D layer.
+    - activation (str): Activation function for the output layer.
+    - input_shape (tuple): Input shape of the images (height, width, channels).
+    - weights (str): Pretrained weights to use. Set to 'imagenet' for ImageNet weights.
+    - alpha (float): Width multiplier for the MobileNet architecture.
+    - train_able (bool): Whether to make the base model trainable.
+    - optimizer (str): Optimizer for model compilation ('adam' or 'sgd').
+    - loss (str): Loss function for model compilation.
+    - metrics (list): List of metrics for model compilation.
+    - learning_rate (float): Learning rate for the optimizer.
+    - weight_decay (float): Weight decay for the optimizer.
+    - momentum (float): Momentum for the optimizer (used if optimizer is 'sgd').
+
+    Returns:
+    -----------------
+    - tf.keras.Model: Compiled classification model.
+    """
+
     base_model = tf.keras.applications.MobileNet(input_shape=input_shape,
                                                  alpha=alpha,
                                                  weights=weights)
@@ -260,6 +297,110 @@ def build_model(num_classes=6, dropout=0.1, activation='softmax',
     
 
     return model
+
+# Load random images from a directory
+def inference_model(keras_model, dir='test', mapping=labels_dict):
+     # Choose a random class folder
+    folder = random.choice(os.listdir(dir))
+    print(f'Class: {folder}')
+
+    # Get a random image from the chosen class folder
+    image = random.choice(os.listdir(f'{dir}/{folder}'))
+
+    # Load and preprocess the image
+    image = tf.keras.preprocessing.image.load_img(f'{dir}/{folder}/{image}', 
+                                                  target_size=(96, 96))
+    image_array = tf.keras.preprocessing.image.img_to_array(image)
+    image_array = image_array / 255.0
+    image = np.expand_dims(image_array, axis=0)
+
+    # Predict
+    prediction = keras_model.predict(image)
+
+    # Get class probabilities
+    probabilities = tf.nn.softmax(prediction[0]).numpy()
+
+    # Get predicted class labels
+    predicted_class = [mapping[i] for i in range(len(probabilities))]
+
+    # Sort the probabilities
+    probabilities, predicted_class = zip(*sorted(zip(probabilities, predicted_class)))
+
+    # Create a 1x2 grid layout
+    gs = GridSpec(1, 2, width_ratios=[1, 2])
+
+    # Plot the image on the left side of the grid
+    plt.subplot(gs[0, 0])
+    plt.imshow(image_array)
+    plt.title(f'{folder}')
+
+    # Plot the horizontal bar chart on the right side of the grid
+    plt.subplot(gs[0, 1])
+    plt.barh(predicted_class, probabilities, color='purple')
+    plt.xlabel('Predicted Probabilities')
+    plt.title('Predicted Class Probabilities')
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # Display the plot
+    plt.show()
+
+# Classification report plots
+def plot_classification_report(model, test_tensors, labels=labels_dict):
+    test_images, test_labels = extract_images_and_labels(test_tensors, normalize=True, categorical=False)
+    y_pred = model.predict(test_images)
+    y_pred_bool = np.argmax(y_pred, axis=1)
+
+    # generate classification report
+    report = classification_report(test_labels, y_pred_bool, output_dict=True)
+    print(report)
+
+    # extract class names and metric from the report
+    class_names = [str(label) for label in list(report.keys())[:-3]]  # Exclude 'macro avg', 'weighted avg', etc.
+    precision = []
+    recall = []
+    f1_score = []
+    for label in class_names:
+        print(f'Class: {label}')
+        try:
+            precision.append(report[label]['precision'])
+        except KeyError:
+            precision.append(0)  # Handle missing precision with a default value
+            
+        try:
+            recall.append(report[label]['recall'])
+        except KeyError:
+            recall.append(0)  # Handle missing recall with a default value
+            
+        try:
+            f1_score.append(report[label]['f1-score'])
+        except KeyError:
+            f1_score.append(0)  # Handle missing F1-score with a default value
+
+    # Create a bar plot using Matplotlib
+    x = np.arange(len(class_names))
+    width = 0.2
+
+    fig, ax = plt.subplots()
+    rects1 = ax.bar(x - width, precision, width, label='Precision')
+    rects2 = ax.bar(x, recall, width, label='Recall')
+    rects3 = ax.bar(x + width, f1_score, width, label='F1-Score')
+
+    ax.set_ylabel('Scores')
+    ax.set_title('Classification Report')
+    ax.set_xticks(x)
+    ax.set_xticklabels([labels[int(label)] for label in class_names])  # Using custom class labels
+    ax.legend()
+
+    ax.bar_label(rects1, padding=3)
+    ax.bar_label(rects2, padding=3)
+    ax.bar_label(rects3, padding=3)
+
+    fig.tight_layout()
+
+    plt.show()
+
 
 
 
