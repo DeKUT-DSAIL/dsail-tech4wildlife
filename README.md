@@ -77,6 +77,7 @@ source tech4wildlife/bin/activate
 
 ### Install the required dependencies
 ```
+cd PART-2
 pip install -r requirements.txt
 ```
 This will get you started with everything required for this tutorial.<br>
