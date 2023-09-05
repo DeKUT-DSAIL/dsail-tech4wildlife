@@ -23,3 +23,6 @@ cd dsail-tech4wildlife
 
 This will get you started with everything required for this tutorial.<br>
 For a step-by-step guide on developing your baseline model, follow the instructions highlighted [here](https://dekut-dsail.github.io/tutorials/image_classification.html)
+
+## Next steps
+By completing these hands-on exercises, you have acquired valuable experience in effectively deploying machine learning models on embedded systems. As we progress to the second phase, we will explore a [camera trap application](https://github.com/DeKUT-DSAIL/dsail-tech4wildlife/tree/main/PART-2) utilizing the DSAIL Porini dataset. You will have the opportunity to work with images captured by camera traps within the Dedan Kimathi University Wildlife Conservancy. Our goal is to develop a model that can precisely classify a diverse range of animal species.
