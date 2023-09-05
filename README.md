@@ -25,6 +25,7 @@ Fauna & Flora, an international wildlife conservation charity with a legacy span
 - Installed Arduino CLI package
 - Installed Edge Impulse CLI
 - This cloned repository
+- OpenMV IDE
 
 ## Hardware Description
 
@@ -62,20 +63,8 @@ This high clock speed enables efficient and speedy inferencing, making it ideal 
   <img src="https://github.com/DeKUT-DSAIL/dsail-tech4wildlife/assets/88529649/b7349310-5c72-4cce-851c-e50bfe9bb200" alt="Open MV Cam H7">
 </div>
 
-## Software Setup 
-- Start by setting up an Edge Impulse Account [here](https://studio.edgeimpulse.com/signup)
-- Install the Edge Impulse CLI [here](https://docs.edgeimpulse.com/docs/edge-impulse-cli/cli-installation)
-- Install the Arduino CLI [here](https://arduino.github.io/arduino-cli/0.23/installation/)
-### Steps to setting up this repository
-
-```
-git clone https://github.com/DeKUT-DSAIL/dsail-tech4wildlife.git
-cd dsail-tech4wildlife
-```
-
-This will get you started with everything required for this tutorial.<br>
-For a step-by-step guide on developing your baseline model and applying that knowledge to a camera trap application.<br>
-Follow the instructions highlighted [here](https://dekut-dsail.github.io/tutorials/image_classification.html)
+To build your baseline model, follow the instructions [here](https://github.com/DeKUT-DSAIL/dsail-tech4wildlife/tree/main/base)<br>
+To build a camera trap system, follow the instructions [here](https://github.com/DeKUT-DSAIL/dsail-tech4wildlife/tree/main/PART-2)
 
 
 
