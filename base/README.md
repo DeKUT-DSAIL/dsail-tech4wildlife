@@ -14,6 +14,7 @@ We will utilize the TinyML kit for image classification and OpenMV for object de
 - Install the OpenMV IDE [here](https://openmv.io/pages/download)
   
 ### Steps to setting up this repository
+Open up a terminal or command prompt then copy the commands below.
 
 ```
 git clone https://github.com/DeKUT-DSAIL/dsail-tech4wildlife.git
