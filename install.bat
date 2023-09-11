@@ -32,14 +32,24 @@ if %errorLevel% neq 0 (
     rem Install Node.js
     choco install -y nodejs 2>> %LOGFILE%
 )
+
+rem Check if Arduino CLI is installed
+arduino-cli version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo Arduino CLI is not installed. Installing Arduino CLI...
+    
+    rem Install Arduino CLI
+    @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/arduino/arduino-cli/master/install.ps1'))" 2>> %LOGFILE%
+    
+    rem Add Arduino CLI to PATH
+    setx PATH "%PATH%;%USERPROFILE%\arduino-cli\bin" 2>> %LOGFILE%
+)
+
 rem Install Python3
 choco install -y python 2>> %LOGFILE%
 
 rem Install edge-impulse-cli tools
 npm install -g edge-impulse-cli 2>> %LOGFILE%
-
-rem Install Arduino CLI
-@powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/arduino/arduino-cli/master/install.ps1'))" 2>> %LOGFILE%
 
 rem Optional: Notify the user about completion
 echo Installation completed successfully.
