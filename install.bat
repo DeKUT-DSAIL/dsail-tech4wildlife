@@ -7,9 +7,12 @@ if %errorLevel% neq 0 (
     goto :eof
 )
 
-rem Create a log file
+rem Define the log file path
 set LOGFILE=install_log.txt
-echo. > %LOGFILE%
+
+rem Create or clear the log file
+type nul > %LOGFILE%
+echo Log file created at %LOGFILE%
 
 rem Check if Chocolatey is installed
 choco --version >nul 2>&1
@@ -49,7 +52,7 @@ rem Install Python3
 choco install -y python 2>> %LOGFILE%
 
 rem Install edge-impulse-cli tools
-npm install -g edge-impulse-cli 2>> %LOGFILE%
+npm install -g edge-impulse-cli --force 2>> %LOGFILE%
 
 rem Optional: Notify the user about completion
 echo Installation completed successfully.
