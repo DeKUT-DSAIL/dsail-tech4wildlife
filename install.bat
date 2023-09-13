@@ -7,6 +7,7 @@ if %errorLevel% neq 0 (
     goto :eof
 )
 
+
 rem Define the log file path with a full path
 set LOGFILE=%~dp0install_log.txt
 
@@ -36,10 +37,9 @@ if %errorLevel% neq 0 (
     rem Install Node.js version 18.x
     choco install -y nodejs --version=18.16.0 2>> %LOGFILE%
 )
-else (
-    rem Already installed
-    echo Node.js is already installed.
-)
+
+rem Already installed
+echo Node.js is already installed.
 
 
 rem Check if Arduino CLI is installed
@@ -50,10 +50,10 @@ if %errorLevel% neq 0 (
     rem Install Arduino CLI
     choco install arduino-cli -y 2>> %LOGFILE%
 )
-else (
-    rem Already installed
-    echo Arduino CLI is already installed.
-)
+
+rem Already installed
+echo Arduino CLI is already installed.
+
 
 rem check if python3.10 is installed
 choco install -y python --version=3.10.11 --force >nul 2>&1
@@ -68,7 +68,7 @@ echo python3.10 is already installed.
 
 
 rem install visualstudio2019buildtools if raises an error
-choco install -y visualstudio2019buildtools --version >nul 2>&1
+choco install -y visualstudio2019buildtools >nul 2>&1
 if %errorLevel% neq 0 (
     echo visualstudio2019buildtools is not installed. Installing visualstudio2019buildtools...
     
@@ -79,7 +79,7 @@ rem visualstudio2019buildtools Already installed
 echo visualstudio2019buildtools is already installed.
 
 rem install visualstudio2022buildtools if raises an error
-choco install -y visualstudio2022buildtools --version >nul 2>&1
+choco install -y visualstudio2022buildtools >nul 2>&1
 if %errorLevel% neq 0 (
     echo visualstudio2022buildtools is not installed. Installing visualstudio2022buildtools...
     
@@ -90,7 +90,7 @@ rem visualstudio2022buildtools Already installed
 echo visualstudio2022buildtools is already installed.
 
 rem install visualstudio2022-workload-vctools if raises an error
-choco install -y visualstudio2022-workload-vctools --version >nul 2>&1
+choco install -y visualstudio2022-workload-vctools  >nul 2>&1
 if %errorLevel% neq 0 (
     echo visualstudio2022-workload-vctools is not installed. Installing visualstudio2022-workload-vctools...
     
