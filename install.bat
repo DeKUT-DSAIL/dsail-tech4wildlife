@@ -23,10 +23,10 @@ if %errorLevel% neq 0 (
     @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" 2>> %LOGFILE%
     
 )
-else (
-    rem Already installed
-    echo Chocolatey is already installed.
-)
+
+rem Already installed
+echo Chocolatey is already installed.
+
 
 rem Check if Node.js is installed
 node -v >nul 2>&1
@@ -55,8 +55,51 @@ else (
     echo Arduino CLI is already installed.
 )
 
-rem Install Python3
-choco install -y python --version==3.10.11 2>> %LOGFILE%
+rem check if python3.10 is installed
+choco install -y python --version=3.10.11 --force >nul 2>&1
+if %errorLevel% neq 0 (
+    echo python3.10 is not installed. Installing python3.10...
+    
+    rem Install Python3
+    choco install -y python --version=3.10.11 --force 2>> %LOGFILE%
+)
+rem python3.10 Already installed
+echo python3.10 is already installed.
+
+
+rem install visualstudio2019buildtools if raises an error
+choco install -y visualstudio2019buildtools --version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo visualstudio2019buildtools is not installed. Installing visualstudio2019buildtools...
+    
+    rem Install visualstudio2019buildtools
+    choco install -y visualstudio2019buildtools 2>> %LOGFILE%
+)
+rem visualstudio2019buildtools Already installed
+echo visualstudio2019buildtools is already installed.
+
+rem install visualstudio2022buildtools if raises an error
+choco install -y visualstudio2022buildtools --version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo visualstudio2022buildtools is not installed. Installing visualstudio2022buildtools...
+    
+    rem Install visualstudio2022buildtools
+    choco install -y visualstudio2022buildtools 2>> %LOGFILE%
+)
+rem visualstudio2022buildtools Already installed
+echo visualstudio2022buildtools is already installed.
+
+rem install visualstudio2022-workload-vctools if raises an error
+choco install -y visualstudio2022-workload-vctools --version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo visualstudio2022-workload-vctools is not installed. Installing visualstudio2022-workload-vctools...
+    
+    rem Install visualstudio2022-workload-vctools
+    choco install -y visualstudio2022-workload-vctools 2>> %LOGFILE%
+)
+rem visualstudio2022-workload-vctools Already installed
+echo visualstudio2022-workload-vctools is already installed.
+
 
 rem Check if edge-impulse-cli is installed
 edge-impulse-daemon --version >nul 2>&1
@@ -66,10 +109,10 @@ if %errorLevel% neq 0 (
     rem Install edge-impulse-cli tools
     npm install -g edge-impulse-cli  2>> %LOGFILE%
 )
-else (
-    rem Already installed
-    echo edge-impulse-cli is already installed.
-)
+
+rem edge-impulse-cli Already installed
+echo edge-impulse-cli is already installed.
+
 
 rem check if pip is installed 
 pip --version >nul 2>&1
@@ -79,10 +122,10 @@ if %errorLevel% neq 0 (
     rem Install pip
     py -m ensurepip --upgrade 2>> %LOGFILE%
 )
-else (
-    rem Already installed
-    echo pip is already installed.
-)
+
+rem pip is Already installed
+echo pip is already installed.
+
 
 rem install virtualenvironment
 echo Installing virtual environment...
