@@ -22,11 +22,6 @@ if %errorLevel% neq 0 (
     rem Install Chocolatey
     @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" 2>> %LOGFILE%
     
-    rem run the script install.bat again after Chocolatey installation then close the current window
-    cd %~dp0
-    start "" "install.bat"
-    
-    exit /b 0
 )
 else (
     rem Already installed
@@ -61,7 +56,7 @@ else (
 )
 
 rem Install Python3
-choco install -y python 2>> %LOGFILE%
+choco install -y python --version==3.10.11 2>> %LOGFILE%
 
 rem Check if edge-impulse-cli is installed
 edge-impulse-daemon --version >nul 2>&1
@@ -69,7 +64,7 @@ if %errorLevel% neq 0 (
     echo edge-impulse-cli is not installed. Installing edge-impulse-cli...
     
     rem Install edge-impulse-cli tools
-    npm install -g edge-impulse-cli --force 2>> %LOGFILE%
+    npm install -g edge-impulse-cli  2>> %LOGFILE%
 )
 else (
     rem Already installed

@@ -13,8 +13,12 @@ from pathlib import Path
 from matplotlib.gridspec import GridSpec 
 from PIL import Image
 from sklearn.metrics import classification_report, accuracy_score
+from livelossplot import PlotLossesKeras
+from livelossplot.outputs import MatplotlibPlot
 
-random.seed(42)
+# Set random seed for reproducibility
+random_state = 42
+random.seed(random_state)
 transfer_weights = os.path.join(Path(os.getcwd()).parent, 'models', 'weights', 'MobileNetV1.0_2.96x96.color.bsize_96.lr_0_05.epoch_170.val_loss_3.61.val_accuracy_0.27.hdf5')
 labels_dict = {
                 0: 'BUSHBUCK',
@@ -24,6 +28,7 @@ labels_dict = {
                 4: 'WATERBUCK',
                 5: 'ZEBRA'
             }
+
 
 def split_data(image_dir, label_df, value):
     '''
@@ -69,8 +74,23 @@ def split_data(image_dir, label_df, value):
                 # Copy the image file to the corresponding species directory
                 shutil.move(f'{image_dir}/{row["filename"]}', f'{value}/{row["Species"]}')
 
+    # check if the image directory is empty and it exists
+    if len(os.listdir(image_dir)) == 0 and os.path.exists(image_dir):
+        # remove the empty directory
+        os.rmdir(image_dir)
 
-def extract_images_and_labels(image_tensors, normalize=True, categorical=True):
+
+# create a data generator loading from directory
+def load_images_from_dir(dir, batch_size=3, image_size=(96,96), shuffle=False, seed=random_state):
+    return tf.keras.preprocessing.image_dataset_from_directory(
+        dir,
+        batch_size=batch_size,
+        image_size=image_size,
+        shuffle=shuffle,
+        seed=seed
+    )
+
+def extract_images_and_labels(image_tensors, normalize=True, categorical=True, num_classes=3):
     """
     Extracts images and labels from a list of image tensors and their corresponding labels.
 
@@ -104,14 +124,14 @@ def extract_images_and_labels(image_tensors, normalize=True, categorical=True):
     if normalize:
         images = images / 255.0
     if categorical:
-        labels = tf.keras.utils.to_categorical(labels, num_classes=6)
+        labels = tf.keras.utils.to_categorical(labels, num_classes=num_classes)
     
     return images, labels
 
 # visualize batch of images
-def visualize_images(dataloader, batch_size=6):
+def visualize_images(dataloader, batch_size=6, class_names=list(labels_dict.values())):
     # get the class names
-    class_names = list(dataloader.class_names)
+    # class_names = list(dataloader.class_names)
     # set a matplotlib figure
     plt.figure(figsize=(10, 10))
     # take the first batch of images
@@ -192,7 +212,7 @@ def visualize_dimensionality_reduction(train_images, train_labels, labels, perpl
     num_samples, height, width, num_channels = train_images.shape
     flattened_train_images = train_images.reshape(num_samples, height * width * num_channels)
     
-    kmeans = KMeans(n_clusters=6, random_state=random_state)
+    kmeans = KMeans(n_clusters=len(labels), random_state=random_state)
     train_labels = kmeans.fit_predict(flattened_train_images)
 
     # Perform PCA
@@ -298,6 +318,33 @@ def build_model(num_classes=6, dropout=0.1, activation='softmax',
 
     return model
 
+# define the callbacks
+def define_callbacks(checkpoint_path='mobilenet_weights.h5', 
+                     monitor='val_loss', mode='min', patience=5,
+                     factor=0.5):
+    # save the best model
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
+                                                    monitor=monitor,
+                                                    mode=mode,
+                                                    save_best_only=True,
+                                                    verbose=1)
+    # reduce learning rate
+    lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(monitor=monitor,
+                                                        factor=factor,
+                                                        patience=patience,
+                                                        verbose=1,
+                                                        min_lr=1e-7)
+    # early stopping
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor=monitor,
+                                                        patience=patience*3,
+                                                        restore_best_weights=True)
+    # livelossplot
+    livelossplot = PlotLossesKeras(outputs=[MatplotlibPlot()])
+
+    return [checkpoint, lr_scheduler, early_stopping, livelossplot]
+
+
+
 # Load random images from a directory
 def inference_model(keras_model, dir='test', mapping=labels_dict):
      # Choose a random class folder
@@ -347,14 +394,15 @@ def inference_model(keras_model, dir='test', mapping=labels_dict):
     plt.show()
 
 # Classification report plots
-def plot_classification_report(model, test_tensors, labels=labels_dict):
+# Classification report plots
+def plot_classification_report(model, test_tensors, labels):
     test_images, test_labels = extract_images_and_labels(test_tensors, normalize=True, categorical=False)
     y_pred = model.predict(test_images)
     y_pred_bool = np.argmax(y_pred, axis=1)
 
     # generate classification report
     report = classification_report(test_labels, y_pred_bool, output_dict=True)
-    print(report)
+    # print(report)
 
     # extract class names and metric from the report
     class_names = [str(label) for label in list(report.keys())[:-3]]  # Exclude 'macro avg', 'weighted avg', etc.
@@ -362,7 +410,7 @@ def plot_classification_report(model, test_tensors, labels=labels_dict):
     recall = []
     f1_score = []
     for label in class_names:
-        print(f'Class: {label}')
+        # print(f'Class: {label}')
         try:
             precision.append(report[label]['precision'])
         except KeyError:
@@ -393,9 +441,9 @@ def plot_classification_report(model, test_tensors, labels=labels_dict):
     ax.set_xticklabels([labels[int(label)] for label in class_names])  # Using custom class labels
     ax.legend()
 
-    ax.bar_label(rects1, padding=3)
-    ax.bar_label(rects2, padding=3)
-    ax.bar_label(rects3, padding=3)
+    # ax.bar_label(rects1, padding=3)
+    # ax.bar_label(rects2, padding=3)
+    # ax.bar_label(rects3, padding=3)
 
     fig.tight_layout()
 

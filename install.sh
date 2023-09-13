@@ -7,7 +7,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Install python3
-apt-get install -y python3
+apt-get install -y python3.10
 
 
 # check if node is installed

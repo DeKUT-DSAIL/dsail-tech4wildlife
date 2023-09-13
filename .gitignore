@@ -4,8 +4,9 @@
 # edge test files
 edge/
 
-# files with the extension .tflite
+# files with the extension .tflite and.h5
 *.tflite
+*.h5
 
 # files with jpg extension
 *.jpg
@@ -38,3 +39,14 @@ PART-2/open-test2-nano-33-ble-sense-v3.zip
 # # ignore the open-mv-model files
 # PART-2/openmv-model/labels.txt
 # PART-2/openmv-model/trained444.tflite
+PART-2/.ipynb_checkpoints/
+
+# html pages in PART-2 folder
+PART-2/*.html
+
+obj/
+
+# simple neuron png
+PART-2/simple_neuron.png
+
+install.command

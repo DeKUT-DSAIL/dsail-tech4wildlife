@@ -23,7 +23,7 @@ led_blue = pyb.LED(3)  # Blue LED
 
 try:
     # load the model, alloc the model file on the heap if we have at least 64K free after loading
-    net = tf.load("trained445.tflite", load_to_fb=uos.stat('trained445.tflite')[6] > (gc.mem_free() - (64*1024)))
+    net = tf.load("trained449.tflite", load_to_fb=uos.stat('trained449.tflite')[6] > (gc.mem_free() - (64*1024)))
 except Exception as e:
     print(e)
     raise Exception('Failed to load "trained445.tflite", did you copy the .tflite and labels.txt file onto the mass-storage device? (' + str(e) + ')')
@@ -48,28 +48,16 @@ while(True):
         pred_dict = dict(predictions_list)
         highest_class = max(pred_dict, key=pred_dict.get)# Control LEDs based on the highest predicted class
         print(highest_class, pred_dict[highest_class])
-        if highest_class == "BUSHBUCK":# red
+        if highest_class == "IMPALA":# red
             led_red.on()
             led_green.off()
             led_blue.off()
-        elif highest_class == "IMPALA": # green
+        elif highest_class == "WARTHOG": # green
             led_red.off()
             led_green.on()
             led_blue.off()
-        elif highest_class == "MONKEY":# blue
+        elif highest_class == "ZEBRA":# blue
             led_red.off()
-            led_green.off()
-            led_blue.on()
-        elif highest_class == "WARTHOG":# yellow
-            led_red.on()
-            led_green.on()
-            led_blue.off()
-        elif highest_class == "WATERBUCK":# white
-            led_red.on()
-            led_green.on()
-            led_blue.on()
-        elif highest_class == "ZEBRA":# purple
-            led_red.on()
             led_green.off()
             led_blue.on()
             
