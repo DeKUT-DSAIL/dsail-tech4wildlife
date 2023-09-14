@@ -22,7 +22,8 @@ if %errorLevel% neq 0 (
     
     rem Install Chocolatey
     @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" 2>> %LOGFILE%
-    
+    rem refresh the environment variables
+    refreshenv
 )
 
 rem Already installed
@@ -66,6 +67,8 @@ if %errorLevel% neq 0 (
 rem python3.10 Already installed
 echo python3.10 is already installed.
 
+rem refresh the environment variables
+refreshenv
 
 rem install visualstudio2019buildtools if raises an error
 choco install -y visualstudio2019buildtools >nul 2>&1
@@ -78,6 +81,9 @@ if %errorLevel% neq 0 (
 rem visualstudio2019buildtools Already installed
 echo visualstudio2019buildtools is already installed.
 
+rem refresh the environment variables
+refreshenv
+
 rem install visualstudio2022buildtools if raises an error
 choco install -y visualstudio2022buildtools >nul 2>&1
 if %errorLevel% neq 0 (
@@ -88,6 +94,9 @@ if %errorLevel% neq 0 (
 )
 rem visualstudio2022buildtools Already installed
 echo visualstudio2022buildtools is already installed.
+
+rem refresh the environment variables
+refreshenv
 
 rem install visualstudio2022-workload-vctools if raises an error
 choco install -y visualstudio2022-workload-vctools  >nul 2>&1
@@ -100,6 +109,8 @@ if %errorLevel% neq 0 (
 rem visualstudio2022-workload-vctools Already installed
 echo visualstudio2022-workload-vctools is already installed.
 
+rem refresh the environment variables
+refreshenv
 
 rem Check if edge-impulse-cli is installed
 edge-impulse-daemon --version >nul 2>&1
@@ -113,6 +124,8 @@ if %errorLevel% neq 0 (
 rem edge-impulse-cli Already installed
 echo edge-impulse-cli is already installed.
 
+rem refresh the environment variables
+refreshenv
 
 rem check if pip is installed 
 pip --version >nul 2>&1
@@ -133,11 +146,14 @@ pip install virtualenv 2>> %LOGFILE%
 
 rem create virtual environment
 echo Creating virtual environment...
-virtualenv dsail-tech4wildlife 2>> %LOGFILE%
+:: Navigate to the current working directory
+cd /d %CD%
+rem Create a virtual environment named dsail-tech4wildlife at the current working directory
+virtualenv %~dp0dsail-tech4wildlife
 
 rem activate virtual environment
 echo Activating virtual environment...
-.\dsail-tech4wildlife\Scripts\activate
+%~dp0dsail-tech4wildlife\Scripts\activate
 
 rem install requirements
 echo Installing requirements...
