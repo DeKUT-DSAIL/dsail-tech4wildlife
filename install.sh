@@ -3,11 +3,17 @@
 # Check for sudo privileges
 if [ "$EUID" -ne 0 ]; then
     echo "Please run as root or with sudo."
-    exit
+    exit 1
 fi
 
-# Install python3
-apt-get install -y python3.10
+# Check if Python 3.10 is already installed
+if ! command -v python3 &>/dev/null; then
+    echo "Python3 is not installed. Installing it..."
+    apt update
+    apt install -y python3.10
+else
+    echo "Python3 is already installed."
+fi
 
 
 # check if node is installed
