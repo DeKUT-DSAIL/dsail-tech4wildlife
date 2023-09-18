@@ -22,8 +22,7 @@ if %errorLevel% neq 0 (
     
     rem Install Chocolatey
     @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" 2>> %LOGFILE%
-    rem refresh the environment variables
-    refreshenv
+    
 )
 
 rem Already installed
@@ -34,13 +33,22 @@ rem Check if Node.js is installed
 node -v >nul 2>&1
 if %errorLevel% neq 0 (
     echo Node.js is not installed. Installing Node.js...
-    
+   
     rem Install Node.js version 18.x
     choco install -y nodejs --version=18.16.0 2>> %LOGFILE%
-)
+) else (
+    rem Node.js is installed; check the version
+    for /f "tokens=1,2,3" %%a in ('node -v') do (
+        set node_version=%%a
+    )
 
-rem Already installed
-echo Node.js is already installed.
+    rem Check if node_version is 18 or higher
+    if "%node_version%" geq "v18" (
+        echo Node.js version is 18 or higher: %node_version%
+    ) else (
+        choco install -y nodejs --version=18.16.0 --force 2>> %LOGFILE%
+    )
+)
 
 
 rem Check if Arduino CLI is installed
@@ -67,8 +75,6 @@ if %errorLevel% neq 0 (
 rem python3.10 Already installed
 echo python3.10 is already installed.
 
-rem refresh the environment variables
-refreshenv
 
 rem install visualstudio2019buildtools if raises an error
 choco install -y visualstudio2019buildtools >nul 2>&1
@@ -81,9 +87,6 @@ if %errorLevel% neq 0 (
 rem visualstudio2019buildtools Already installed
 echo visualstudio2019buildtools is already installed.
 
-rem refresh the environment variables
-refreshenv
-
 rem install visualstudio2022buildtools if raises an error
 choco install -y visualstudio2022buildtools >nul 2>&1
 if %errorLevel% neq 0 (
@@ -94,9 +97,6 @@ if %errorLevel% neq 0 (
 )
 rem visualstudio2022buildtools Already installed
 echo visualstudio2022buildtools is already installed.
-
-rem refresh the environment variables
-refreshenv
 
 rem install visualstudio2022-workload-vctools if raises an error
 choco install -y visualstudio2022-workload-vctools  >nul 2>&1
@@ -109,8 +109,6 @@ if %errorLevel% neq 0 (
 rem visualstudio2022-workload-vctools Already installed
 echo visualstudio2022-workload-vctools is already installed.
 
-rem refresh the environment variables
-refreshenv
 
 rem Check if edge-impulse-cli is installed
 edge-impulse-daemon --version >nul 2>&1
@@ -124,8 +122,6 @@ if %errorLevel% neq 0 (
 rem edge-impulse-cli Already installed
 echo edge-impulse-cli is already installed.
 
-rem refresh the environment variables
-refreshenv
 
 rem check if pip is installed 
 pip --version >nul 2>&1
